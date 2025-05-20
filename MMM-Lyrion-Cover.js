@@ -7,7 +7,7 @@ Module.register("MMM-Lyrion-Cover", {
 
   start() {
     this.currentTrack = null;
-    this.sendSocketNotification("CONFIG", this.config);
+    this.sendSocketNotification("SET_CONFIG", this.config);
     this.getData();
     setInterval(() => this.getData(), this.config.updateInterval);
   },
@@ -18,6 +18,7 @@ Module.register("MMM-Lyrion-Cover", {
 
   getDom() {
     const wrapper = document.createElement("div");
+    wrapper.className = "lyrion-wrapper";
 
     if (!this.currentTrack) {
       wrapper.innerHTML = "Warte auf Musikdaten...";
@@ -32,6 +33,7 @@ Module.register("MMM-Lyrion-Cover", {
     }
 
     const text = document.createElement("div");
+    text.className = "lyrion-text";
     text.innerHTML = `
       <strong>${this.currentTrack.title}</strong><br/>
       ${this.currentTrack.artist} – ${this.currentTrack.album}
