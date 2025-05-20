@@ -1,64 +1,70 @@
 Module.register("MMM-Lyrion-Cover", {
-  defaults: {
-    updateInterval: 60000,
-    lmsServer: "",
-    showCover: true
-  },
-
-  start() {
-    this.playersNowPlaying = [];
-    this.sendSocketNotification("SET_CONFIG", this.config);
-    this.getData();
-    setInterval(() => this.getData(), this.config.updateInterval);
-  },
-
-  getData() {
-    this.sendSocketNotification("GET_LYRION_DATA");
-  },
-
-  getStyles: function() {
-        return ["MMM-Lyrion-Cover.css", "font-awesome.css"];
+    defaults: {
+        updateInterval: 60000,
+        lmsServer: "http://192.168.1.100:9000",
     },
-  
-  getDom() {
-    const wrapper = document.createElement("div");
 
-    if (this.playersNowPlaying.length === 0) {
-      wrapper.innerHTML = "Kein aktiver Player gefunden.";
-      return wrapper;
+    start: function() {
+        this.players = [];
+        this.getPlayers();
+        setInterval(() => {
+            this.getPlayers();
+        }, this.config.updateInterval);
+    },
+    
+    getTranslations: function () {
+    return {
+      en: "translations/en.json",
+      de: "translations/de.json",
+      };
+    },
+
+    getPlayers: function() {
+        this.sendSocketNotification("GET_PLAYERS_AND_TRACKS", this.config.lmsServer);
+    },
+
+    socketNotificationReceived: function(notification, payload) {
+        if (notification === "PLAYERS_TRACKS_RESULT") {
+            this.players = payload;
+            this.updateDom();
+        }
+    },
+
+    getStyles: function() {
+        return ["MMM-Lyrion.css", "font-awesome.css"];
+    },
+
+    getDom: function() {
+    var wrapper = document.createElement("div");
+    wrapper.className = "Lyrion";
+
+    // Nur Player anzeigen, die aktuell etwas abspielen
+    var playingPlayers = this.players.filter(player => player.isPlaying && player.track);
+
+    if (playingPlayers.length === 0) {
+        //wrapper.innerHTML = "Kein aktiver Player <i class='fa fa-music'></i>"; //Original
+        wrapper.innerHTML = this.translate("noplayer") + "  <i class='fa fa-music'></i>";
+        return wrapper;
     }
 
-    this.playersNowPlaying.forEach(player => {
-      const playerWrapper = document.createElement("div");
-      playerWrapper.className = "lyrion-wrapper";
+    playingPlayers.forEach(player => {
+        var playerDiv = document.createElement("div");
+        playerDiv.className = "player-container";
 
-      if (this.config.showCover && player.artwork_url) {
-        const img = document.createElement("img");
-        img.src = player.artwork_url;
-        img.className = "lyrion-cover";
-        playerWrapper.appendChild(img);
-      }
+        var header = document.createElement("div");
+        header.className = "player-header";
+        header.innerHTML = `<b>${player.name}</b>  <i class="fa fa-play"></i>`;
+        playerDiv.appendChild(header);
 
-      const text = document.createElement("div");
-      text.className = "lyrion-text";
-      text.innerHTML = `
-        <small>${player.name}</small>
-        <strong>${player.title}</strong><br/>
-        ${player.track.artist} – ${player.track.album}<br/>
-        
-      `;
-      playerWrapper.appendChild(text);
+        var trackInfo = document.createElement("div");
+        trackInfo.className = "player-track-info";
+        trackInfo.innerHTML = `${player.track.artist} – ${player.track.title}`;
 
-      wrapper.appendChild(playerWrapper);
+        playerDiv.appendChild(trackInfo);
+        wrapper.appendChild(playerDiv);
     });
 
     return wrapper;
-  },
 
-  socketNotificationReceived(notification, payload) {
-    if (notification === "LYRION_DATA") {
-      this.playersNowPlaying = payload;
-      this.updateDom();
     }
-  }
 });
