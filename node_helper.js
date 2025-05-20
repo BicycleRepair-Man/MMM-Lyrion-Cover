@@ -18,22 +18,20 @@ module.exports = NodeHelper.create({
 
   async getLyrionData() {
     const lmsUrl = this.config.lmsServer;
+    const playersData = [];
+
     try {
-      // 1. Alle Player abfragen
-      const playerRes = await axios.post(`${lmsUrl}/jsonrpc.js`, {
+      const playerList = await axios.post(`${lmsUrl}/jsonrpc.js`, {
         id: 1,
         method: "slim.request",
         params: ["", ["players", "0", "100"]]
       });
 
-      const players = playerRes.data.result.players_loop || [];
-
-      // 2. Aktiven Player finden
-      let activePlayer = null;
-      let currentTrack = null;
+      const players = playerList.data.result.players_loop || [];
 
       for (const player of players) {
         const playerId = player.playerid;
+        const playerName = player.name;
 
         const statusRes = await axios.post(`${lmsUrl}/jsonrpc.js`, {
           id: 1,
@@ -44,30 +42,20 @@ module.exports = NodeHelper.create({
         const status = statusRes.data.result;
 
         if (status.mode === "play") {
-          activePlayer = {
-            name: player.name,
-            playerid: playerId
-          };
-
           const coverId = status.coverid;
           const coverUrl = coverId ? `${lmsUrl}/music/${coverId}/cover.jpg` : null;
 
-          currentTrack = {
+          playersData.push({
+            name: playerName,
             title: status.title || "Unbekannter Titel",
             artist: status.artist || "Unbekannter Künstler",
             album: status.album || "Unbekanntes Album",
             artwork_url: coverUrl
-          };
-
-          break; // nur den ersten aktiven Player anzeigen
+          });
         }
       }
 
-      this.sendSocketNotification("LYRION_DATA", {
-        players,
-        activePlayer,
-        currentTrack
-      });
+      this.sendSocketNotification("LYRION_DATA", playersData);
 
     } catch (error) {
       console.error("Fehler beim Abrufen der Lyrion-Daten:", error.message);
