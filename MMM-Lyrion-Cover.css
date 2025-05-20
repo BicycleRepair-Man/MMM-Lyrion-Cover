@@ -1,6 +1,7 @@
 .lyrion-wrapper {
   display: flex;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .lyrion-cover {
