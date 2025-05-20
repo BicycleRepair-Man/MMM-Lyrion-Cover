@@ -16,6 +16,10 @@ Module.register("MMM-Lyrion-Cover", {
     this.sendSocketNotification("GET_LYRION_DATA");
   },
 
+  getStyles: function() {
+        return ["MMM-Lyrion-Cover.css", "font-awesome.css"];
+    },
+  
   getDom() {
     const wrapper = document.createElement("div");
 
