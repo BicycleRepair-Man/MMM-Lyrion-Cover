@@ -42,9 +42,10 @@ Module.register("MMM-Lyrion-Cover", {
       const text = document.createElement("div");
       text.className = "lyrion-text";
       text.innerHTML = `
+        <small>${player.name}</small>
         <strong>${player.title}</strong><br/>
-        ${player.artist} – ${player.album}<br/>
-        <small>Player: ${player.name}</small>
+        ${player.track.artist} – ${player.track.album}<br/>
+        
       `;
       playerWrapper.appendChild(text);
 
