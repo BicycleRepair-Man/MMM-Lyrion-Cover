@@ -1,5 +1,5 @@
 const NodeHelper = require("node_helper");
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 module.exports = NodeHelper.create({
   start() {
@@ -7,7 +7,7 @@ module.exports = NodeHelper.create({
   },
 
   socketNotificationReceived(notification, payload) {
-    if (notification === "CONFIG") {
+    if (notification === "SET_CONFIG") {
       this.config = payload;
     }
 
@@ -18,31 +18,28 @@ module.exports = NodeHelper.create({
 
   async getLyrionData() {
     try {
-      const res = await fetch(`${this.config.lmsServer}/jsonrpc.js`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: 1,
+      const res = await axios.get(`${this.config.lmsServer}/jsonrpc.js`, {
+        params: {
+          player: "",
           method: "slim.request",
-          params: ["", ["status", "-", 1, "tags:albct"]]
-        })
+          params: ["", ["status", "-", 1, "tags:adcl"]]
+        }
       });
 
-      const data = await res.json();
-      const song = data.result && data.result.playlist_loop && data.result.playlist_loop[0];
+      const data = res.data;
+      const result = data.result;
 
-      if (song) {
-        const coverUrl = `${this.config.lmsServer}/music/${song.coverid}/cover.jpg`;
+      const coverId = result.coverid;
+      const coverUrl = coverId ? `${this.config.lmsServer}/music/${coverId}/cover.jpg` : null;
 
-        this.sendSocketNotification("LYRION_DATA", {
-          title: song.title || "",
-          artist: song.artist || "",
-          album: song.album || "",
-          artwork_url: song.coverid ? coverUrl : null
-        });
-      }
-    } catch (e) {
-      console.error("Fehler beim Abrufen von Lyrion-Daten:", e);
+      this.sendSocketNotification("LYRION_DATA", {
+        title: result.title || "",
+        artist: result.artist || "",
+        album: result.album || "",
+        artwork_url: coverUrl
+      });
+    } catch (error) {
+      console.error("[MMM-Lyrion] Fehler beim Abrufen der Daten:", error);
     }
   }
 });
