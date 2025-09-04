@@ -2,6 +2,16 @@
 
 This module allows you to display the cover of the media currently playing on your Lyrion Media Server (formerly Logitech Media Server or LMS)
 
+
+## Installation
+
+Navigate to your MagicMirror modules directory and clone the repository:
+
+```bash
+cd ~/MagicMirror/modules
+git clone https://github.com/BicycleRepair-Man/MMM-Lyrion-Cover.git
+```
+
 ## Configuration
 
 To enable the module, add it to the config.js file in your MagicMirror setup:
