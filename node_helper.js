@@ -74,7 +74,7 @@ module.exports = NodeHelper.create({
                         track: trackInfo
                     };
                 } catch (innerError) {
-                    console.error(`Fehler beim Abrufen des Status für Player ${player.name}:`, innerError);
+                    console.error(`Error retrieving status for player ${player.name}:`, innerError);
                     return {
                         name: player.name,
                         id: player.playerid,
